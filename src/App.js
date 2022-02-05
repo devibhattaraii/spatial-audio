@@ -7,7 +7,8 @@ import SpatialAudio from './components/SpatialAudio.jsx'
 function App() {
   return (
     <div className="App">
-< SpatialAudio /> </div>);
+      < Game />
+    </div>);
 
 
 }
