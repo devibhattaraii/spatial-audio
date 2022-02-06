@@ -1,13 +1,10 @@
-import React, { useRef, useEffect } from 'react';
-import useMap from './useMap';
-import usePlayer from './usePlayer';
-import useCamera from './useCamera';
+import React, { useRef, useEffect, useContext } from 'react';
+
+import GameContext from '../contexts/GameContext';
 
 const Game = () => {
 	const [lastTime, setLastTime] = useState(0)
-	const map = useMap();
-	const player = usePlayer();
-	const camera = useCamera();
+	const {state:{map, player, camera}, setCanvasContext}= useContext(GameContext)
 	const canvasRef = useRef(null)
 	
 	const tick = (time) => {
@@ -26,6 +23,7 @@ const Game = () => {
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		const canvasContext = canvas.getContext('2d');
+		setCanvasContext(canvasContext);
 
 		// Continue the game loop.
 		requestAnimationFrame(tick);
