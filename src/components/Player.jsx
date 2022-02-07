@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { Howler } from 'howler';
-import {circle} from '../constants'
+import { useState, useContext } from "react";
 
-const usePlayer = (x, y, direction, velocity) =>{  
+import { Howler } from 'howler';
+import { circle } from '../constants'
+import GameContext from "../contexts/GameContext";
+
+
+const usePlayer = (x, y, direction, velocity) =>{ 
+	const {state: {map} } = useContext(GameContext) 
 	const [position, setPosition] = useState({
 		x,
 		y
@@ -18,7 +22,7 @@ const usePlayer = (x, y, direction, velocity) =>{
 	const hand = new Texture('./assets/gun.png', 512, 360);
 
   // Update the position of the audio listener.
-  Howler.pos(player.x, player.y, -0.5);
+  Howler.pos(position.x, position.y, -0.5);
 
 	const rotate = (angle) => {
     
@@ -31,21 +35,24 @@ const usePlayer = (x, y, direction, velocity) =>{
 		})
 
     const z = Math.sin(dir);
-    Howler.orientation(x, y, z, 0, 1, 0);
+    Howler.orientation(position.x, position.y, z, 0, 1, 0);
 	}
 	
-	const walk = (dist) => {
-    const dx = Math.cos(dir) * dist;
-    const dy = Math.sin(dir) * dist;
+	const walk = (dist) =>
+	{
+		const dx = Math.cos(dir) * dist;
+		const dy = Math.sin(dir) * dist;
 
-    // Move the player if they can walk here.
-    setPosition((game.map.check(x + dx, y) <= 0) ? dx : 0);
-    setPosition(y=(game.map.check(x, y + dy) <= 0) ? dy : 0);
+		// Move the player if they can walk here.
+		setPosition({
+			x: (map.check(position.x + dx, position.y) <= 0) ? dx : 0,
+			y: (map.check(position.x, position.y + dy) <= 0) ? dy : 0
+		});
 
 		setSteps(steps+dist)
 
     // Update the position of the audio listener.
-    Howler.pos(x, y, -0.5);
+    Howler.pos(position.x, position.y, -0.5);
 	}
 	
 	const update = (secs) => {
@@ -56,7 +63,12 @@ const usePlayer = (x, y, direction, velocity) =>{
 	}
 	
   // Update the direction and orientation.
-  rotate(dir);
+	rotate(dir);
+  return ({
+    rotate,
+    walk,
+    update
+  })
 };
 
 
