@@ -4,7 +4,6 @@ const GameContext = React.createContext();
 
 const gameReducer = (state, action) => {
     switch (action.type) {
-
         case 'SET_MAP':
             return { ...state, map: action.payload };
         case 'SET_SOUND':
@@ -17,22 +16,29 @@ const gameReducer = (state, action) => {
             return { ...state, camera: action.payload };
          case 'SET_CANVASCONTEXT':
             return { ...state, canvasContext: action.payload };
-        
+        case 'SET_CANVAS':
+            return { ...state, canvas: action.payload };    
+        case 'SET_CONTROLS':
+            return { ...state, controls: action.payload };  
+        case 'SET_ISLOADING':
+            return { ...state, isLoading: false };  
         default:
             return state;
     }
-        
 }
 
 export const GameProvider = ({ children }) =>
 {
     const [state, dispatch] = useReducer(gameReducer, {
+        isLoading: true,
         map: null,
         sound: null,
         player: null,
         game: null,
         camera: null,
-        canvasContext: null
+        canvasContext: null,
+        canvas: null,
+        controls: null
     })
 
     const setMap = (map) => {
@@ -59,8 +65,17 @@ export const GameProvider = ({ children }) =>
         dispatch({ type: 'SET_CANVASCONTEXT', payload: canvasContext});
     }
 
+    const setCanvas = (canvas) => {
+        dispatch({ type: 'SET_CANVAS', payload: canvas});
+    }
 
+    const setControls = (controls) => {
+        dispatch({ type: 'SET_CONTROLS', payload: controls});
+    }
 
+    const setIsLoading = () => {
+        dispatch({type: 'SET_ISLOADING'});
+    }
     return (
         <GameContext.Provider value={{
             state,
@@ -69,7 +84,10 @@ export const GameProvider = ({ children }) =>
             setPlayer,
             setGame,
             setCamera,
-            setCanvasContext
+            setCanvasContext,
+            setCanvas,
+            setControls,
+            setIsLoading,
         }}>
             {children}
         </GameContext.Provider>

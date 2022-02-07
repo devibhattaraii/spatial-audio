@@ -3,23 +3,24 @@ import { useState, useContext } from "react";
 import { Howler } from 'howler';
 import { circle } from '../constants'
 import GameContext from "../contexts/GameContext";
-
+import Texture from "./Texture";
+import gun from '../assets/gun.png'
 
 const usePlayer = (x, y, direction, velocity) =>{ 
-	const {state: {map} } = useContext(GameContext) 
+	const {state: {map, controls} } = useContext(GameContext) 
 	const [position, setPosition] = useState({
 		x,
 		y
 	})
 
-		const [dir, setDir] = useState(direction)
+	const [dir, setDir] = useState(direction)
 
-		const [speed, setSpeed] = useState(velocity || 3)
+	const [speed, ] = useState(velocity || 3)
 
-		const [steps, setSteps] = useState(0)
+	const [steps, setSteps] = useState(0)
 
 
-	const hand = new Texture('./assets/gun.png', 512, 360);
+	const hand = new Texture(gun, 512, 360);
 
   // Update the position of the audio listener.
   Howler.pos(position.x, position.y, -0.5);
@@ -56,15 +57,16 @@ const usePlayer = (x, y, direction, velocity) =>{
 	}
 	
 	const update = (secs) => {
-    if (states.left) rotate(-Math.PI * secs);
-    if (states.right) rotate(Math.PI * secs);
-    if (states.front) walk(speed * secs);
-    if (states.back) walk(-speed * secs);
+    if (controls.states.left) rotate(-Math.PI * secs);
+    if (controls.states.right) rotate(Math.PI * secs);
+    if (controls.states.front) walk(speed * secs);
+    if (controls.states.back) walk(-speed * secs);
 	}
 	
   // Update the direction and orientation.
 	rotate(dir);
   return ({
+		hand,
     rotate,
     walk,
     update

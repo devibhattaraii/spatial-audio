@@ -1,13 +1,12 @@
-import React, { useRef, useState, useEffect, useContext } from 'react';
+import { useCallback, useState, useEffect, useContext } from 'react';
 
 import GameContext from '../contexts/GameContext';
 
-const Game = () => {
+const useGame = () => {
 	const [lastTime, setLastTime] = useState(0)
-	const {state:{map, player, camera}, setCanvasContext}= useContext(GameContext)
-	const canvasRef = useRef(null)
+	const {state:{map, player, camera}} = useContext(GameContext)
 	
-	const tick = (time) => {
+	const tick = useCallback((time) => {
 		const ms = time - lastTime;
 		setLastTime(time);
 
@@ -17,23 +16,18 @@ const Game = () => {
 		camera.render(player, map);
 
 		requestAnimationFrame(tick);
-
-	}
+	}, [lastTime, map, player, camera]);
 
 	useEffect(() => {
-		const canvas = canvasRef.current;
-		const canvasContext = canvas.getContext('2d');
-		setCanvasContext(canvasContext);
-
 		// Continue the game loop.
 		requestAnimationFrame(tick);
 
 		// generates a new map
 		map.setup();
-	}, [])	
+	}, [map, tick])	
 
 
-  return <canvas ref={canvasRef} />
+  return {tick};
 };
 
-export default Game;
+export default useGame;
