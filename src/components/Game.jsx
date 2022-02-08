@@ -2,32 +2,36 @@ import { useCallback, useState, useEffect, useContext } from 'react';
 
 import GameContext from '../contexts/GameContext';
 
-const useGame = () => {
-	const [lastTime, setLastTime] = useState(0)
-	const {state:{map, player, camera}} = useContext(GameContext)
-	
-	const tick = useCallback((time) => {
-		const ms = time - lastTime;
-		setLastTime(time);
+const Game = () => {
+  const [lastTime, setLastTime] = useState(0);
+  const {
+    state: { map, player, camera },
+  } = useContext(GameContext);
 
-		// Update the different components of the scene.
-		map.update(ms / 1000);
-		player.update(ms / 1000);
-		camera.render(player, map);
+  const tick = useCallback(
+    (time) => {
+      const ms = time - lastTime;
+      setLastTime(time);
 
-		requestAnimationFrame(tick);
-	}, [lastTime, map, player, camera]);
+      // Update the different components of the scene.
+      map.update(ms / 1000);
+      player.update(ms / 1000);
+      camera.render(player, map);
 
-	useEffect(() => {
-		// Continue the game loop.
-		requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
+    },
+    [lastTime, map, player, camera]
+  );
 
-		// generates a new map
-		map.setup();
-	}, [map, tick])	
+  useEffect(() => {
+    // Continue the game loop.
+    requestAnimationFrame(tick);
 
+    // generates a new map
+    map.setup();
+  }, [map, tick]);
 
-  return {tick};
+  return null;
 };
 
-export default useGame;
+export default Game;
