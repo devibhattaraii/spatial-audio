@@ -1,57 +1,61 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 
-import { codes } from '../constants'
+import { controlsActions } from '../redux/slices/controls';
 
-const useControls = () => {
-  // Define our control key codes and states.
-  const [states, setStates] = useState({left: false, right: false, front: false, back: false});
+const controlCodes = {
+  // WASD
+  a: 'left',
+  d: 'right',
+  w: 'front',
+  s: 'back',
 
-  const key = (pressed, event) => {
-    const state = codes[event.keyCode];
-    
-    if (!state) {
-      return;
-    }
-    
-    setStates({...states, [state]: pressed});
-    event.preventDefault && event.preventDefault();
-    event.stopPropagation && event.stopPropagation();
-  }
-
-  const touch = (event) => {
-    const touches = event.touches[0];
-    
-    // Reset the states.
-    touchEnd(event);
-    
-    // Determine which key to simulate.
-    if (touches.pageY < window.innerHeight * 0.3) {
-      key(true, {keyCode: 38});
-    } else if (touches.pageY > window.innerHeight * 0.7) {
-      key(true, {keyCode: 40});
-    } else if (touches.pageX < window.innerWidth * 0.5) {
-      key(true, {keyCode: 37});
-    } else if (touches.pageX > window.innerWidth * 0.5) {
-      key(true, {keyCode: 39});
-    }
-  }
-
-  const touchEnd = (event) => {
-    setStates({left: false, right: false, front: false, back: false});
-    event.preventDefault();
-    event.stopPropagation();
-  }
-  
-  // Setup the DOM listeners.
- useEffect(() => { 
-    document.addEventListener('keydown', key(true), false);
-    document.addEventListener('keyup', key(false), false);
-    document.addEventListener('touchstart', touch, false);
-    document.addEventListener('touchmove', touch, false);
-    document.addEventListener('touchend', touchEnd, false);
-  })
-
-  return {states, key, touch, touchEnd};
+  // Arrows
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  ArrowUp: 'front',
+  ArrowDown: 'back',
 };
 
-export default useControls;
+const Controls = () => {
+  const dispatch = useDispatch();
+
+  const key = useCallback(
+    (pressed, event) => {
+      const state = controlCodes[event.key];
+      if (!state) return;
+      dispatch(controlsActions.changeState(state, pressed));
+      event.preventDefault && event.preventDefault();
+      event.stopPropagation && event.stopPropagation();
+    },
+    [dispatch]
+  );
+
+  const keyDownHandler = useCallback(
+    (event) => {
+      key(true, event);
+    },
+    [key]
+  );
+
+  const keyUpHandler = useCallback(
+    (event) => {
+      key(false, event);
+    },
+    [key]
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', keyDownHandler, false);
+    document.addEventListener('keyup', keyUpHandler, false);
+
+    return () => {
+      document.removeEventListener('keydown', keyDownHandler, false);
+      document.removeEventListener('keyup', keyUpHandler, false);
+    };
+  }, [keyDownHandler, keyUpHandler]);
+
+  return null;
+};
+
+export default Controls;

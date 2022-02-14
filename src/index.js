@@ -4,13 +4,9 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-import { GameProvider } from './contexts/GameContext';
-
 ReactDOM.render(
   <React.StrictMode>
-    <GameProvider>
-      <App />
-    </GameProvider>
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );

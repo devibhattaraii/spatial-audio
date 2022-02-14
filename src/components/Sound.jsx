@@ -1,96 +1,54 @@
-import { Howl } from 'howler';
-import spriteWebm from '../assets/sprite.webm';
-import spriteMp3 from '../assets/sprite.mp3';
+import { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-const useSound = () => {
-  // Setup the shared Howl.
-  const sound = new Howl({
-    src: [spriteMp3, spriteWebm],
-    sprite: {
-      lightning: [2000, 4147],
-      rain: [8000, 9962, true],
-      thunder: [19000, 13858],
-      music: [34000, 31994, true],
-    },
-    volume: 0,
-  });
+import {
+  selectRainID,
+  selectThunderID,
+  selectMusicID,
+  soundActions,
+} from '../redux/slices/sound';
 
-  const rain = () => {
-    const _rain = sound.play('rain');
-    sound.volume(0.2, _rain);
-  };
+import { sound, mapGrid, mapSize } from '../constants';
 
-  const thunder = () => {
+const Sound = () => {
+  const rainID = useSelector(selectRainID);
+  const thunderID = useSelector(selectThunderID);
+  const musicID = useSelector(selectMusicID);
+  const dispatch = useDispatch();
+
+  const playThunderTimely = useCallback(() => {
     setTimeout(() => {
-      // Play the thunder sound in a random position.
-      var x = Math.round(100 * (2 - Math.random() * 4)) / 100;
-      var y = Math.round(100 * (2 - Math.random() * 4)) / 100;
-      const _thunder = sound.play('thunder');
-      sound.pos(x, y, -0.5, _thunder);
-      sound.volume(1, _thunder);
-
-      // Schedule the next clap.
-      thunder();
+      dispatch(soundActions.playThunder(sound));
+      playThunderTimely();
     }, 5000 + Math.round(Math.random() * 15000));
-  };
+  }, [dispatch]);
 
-  const lightning = () => {
-    const x = Math.round(100 * (2.5 - Math.random() * 5)) / 100;
-    const y = Math.round(100 * (2.5 - Math.random() * 5)) / 100;
-    const rate = Math.round(100 * (0.4 + Math.random() * 1.25)) / 100;
+  useEffect(() => {
+    dispatch(soundActions.playRain(sound));
+    playThunderTimely();
 
-    // Play the lightning sound.
-    const id = sound.play('lightning');
+    return () => {
+      dispatch(soundActions.stopRain(sound, rainID));
+      dispatch(soundActions.stopThunder(sound, thunderID));
+    };
+  }, [dispatch, playThunderTimely]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Change the position and rate.
-    sound.pos(x, y, -0.5, id);
-    sound.rate(rate, id);
-    sound.volume(1, id);
-  };
+  useEffect(() => {
+    for (let i = 0; i < mapGrid.length; i++) {
+      if (mapGrid[i] === 2) {
+        // Entry of 2 in grid corresponds to a speaker
+        const y = Math.floor(i / mapSize);
+        const x = i % mapSize;
+        dispatch(soundActions.playMusic(sound, x, y));
+      }
+    }
 
-  const speaker = (x, y) => {
-    var soundId = sound.play('music');
-    sound.once(
-      'play',
-      () => {
-        // Set the position of the speaker in 3D space.
-        sound.pos(x + 0.5, y + 0.5, -0.5, soundId);
-        sound.volume(1, soundId);
+    return () => {
+      dispatch(soundActions.stopMusic(sound, musicID));
+    };
+  }, [dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        /*
-    Panning-Model: spatialisation algorithm to use to position the audio in 3D space.
-    ref-distance: A double value representing the reference distance 
-                for reducing volume as the audio source moves further from the listener.
-                For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.
-
-    Rollerfactor: A double value describing how quickly the volume is reduced 
-                as the source moves away from the listener. This value is used by all distance models.
-
-    distanceModel: An enumerated value determining which algorithm to use 
-                    to reduce the volume of the audio source as it moves away from the listener. 
-                    Possible values are "linear", "inverse" and "exponential". The default value is "inverse".
-    */
-
-        // Tweak the attributes to get the desired effect.
-        sound.pannerAttr(
-          {
-            panningModel: 'HRTF',
-            refDistance: 0.8,
-            rolloffFactor: 2.5,
-            distanceModel: 'exponential',
-          },
-          soundId
-        );
-      },
-      soundId
-    );
-  };
-
-  // Begin playing background sounds.
-  rain();
-  thunder();
-
-  return { rain, thunder, lightning, speaker };
+  return null;
 };
 
-export default useSound;
+export default Sound;

@@ -1,37 +1,46 @@
-import { useCallback, useState, useEffect, useContext } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
-import GameContext from '../contexts/GameContext';
+import useCamera from '../hooks/useCamera';
+import useMap from '../hooks/useMap';
+import usePlayer from '../hooks/usePlayer';
+import Sound from './Sound';
+import Player from './Player';
+import Controls from './Controls';
 
 const Game = () => {
-  const [lastTime, setLastTime] = useState(0);
-  const {
-    state: { map, player, camera },
-  } = useContext(GameContext);
+  const gameRef = useRef();
+  const lastTimeRef = useRef(0);
+  const map = useMap();
+  const camera = useCamera();
+  const player = usePlayer();
 
   const tick = useCallback(
     (time) => {
-      const ms = time - lastTime;
-      setLastTime(time);
-
-      // Update the different components of the scene.
+      const ms = time - lastTimeRef.current;
+      lastTimeRef.current = time;
+      gameRef.current = requestAnimationFrame(tick);
       map.update(ms / 1000);
       player.update(ms / 1000);
-      camera.render(player, map);
-
-      requestAnimationFrame(tick);
+      camera.render();
     },
-    [lastTime, map, player, camera]
+    [camera, map, player]
   );
 
   useEffect(() => {
-    // Continue the game loop.
-    requestAnimationFrame(tick);
+    gameRef.current = requestAnimationFrame(tick);
 
-    // generates a new map
-    map.setup();
-  }, [map, tick]);
+    return () => {
+      gameRef.current && cancelAnimationFrame(gameRef.current);
+    };
+  }, [gameRef, tick]);
 
-  return null;
+  return (
+    <>
+      <Sound />
+      <Player />
+      <Controls />
+    </>
+  );
 };
 
 export default Game;
