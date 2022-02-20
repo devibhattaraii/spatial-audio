@@ -65,6 +65,18 @@ const sound = createSlice({
             sound.pos(x + 0.5, y + 0.5, -0.5, id);
             sound.volume(1, id);
 
+            /*
+    Panning-Model: spatialisation algorithm to use to position the audio in 3D space.
+    ref-distance: A double value representing the reference distance 
+                for reducing volume as the audio source moves further from the listener.
+                For distances greater than this the volume will be reduced based on rolloffFactor and distanceModel.
+    Rollerfactor: A double value describing how quickly the volume is reduced 
+                as the source moves away from the listener. This value is used by all distance models.
+    distanceModel: An enumerated value determining which algorithm to use 
+                    to reduce the volume of the audio source as it moves away from the listener. 
+                    Possible values are "linear", "inverse" and "exponential". The default value is "inverse".
+    */
+
             sound.pannerAttr(
               {
                 panningModel: 'HRTF',
